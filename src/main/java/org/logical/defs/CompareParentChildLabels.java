@@ -81,7 +81,7 @@ public class CompareParentChildLabels {
 		
 		for (OWLClass superCls : superClses) {
 			String superClsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls);
-			boolean isMatch = StringMatcher.contains(superClsLabel, subclsLabel);
+			boolean isMatch = StringMatcher.contains(subclsLabel, superClsLabel);
 			
 			if (isMatch == true) {
 				writeLine(subcls, superCls, subclsLabel, superClsLabel);
