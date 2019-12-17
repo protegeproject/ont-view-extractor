@@ -13,7 +13,10 @@ public class StringUtils {
 
 	public static String toCsvField(Object o) {
 		String res = (o == null ? "" : o.toString());
-		if (res.contains("\n") || res.contains(COL_SEPARATOR) || res.contains(VALUE_SEPARATOR) || res.contains(QUOTE)) {
+		if (res.contains("\n")) {
+			res = res.replace("\n", " ");
+		}
+		if (res.contains(COL_SEPARATOR) || res.contains(VALUE_SEPARATOR) || res.contains(QUOTE)) {
 			res = res.replaceAll(QUOTE, QUOTE + QUOTE);
 			res = QUOTE + res + QUOTE;
 		}
