@@ -65,7 +65,7 @@ public class StringMatcher {
 	}
 
 
-	private static String preprocessString(String s) {
+	public static String preprocessString(String s) {
 		//first try to get it from the cache
 		String cached = str2stemCache.get(s);
 		if (cached != null) {
@@ -106,6 +106,12 @@ public class StringMatcher {
 	}
 
 
+	public static String replaceStringUsingStems(String str, String substr, String replacement) {
+		str = StringMatcher.preprocessString(str);
+		substr = StringMatcher.preprocessString(substr);
+		return str.replace(substr, replacement);
+	}
+	
 	public static String removeExcludedWords(String s) {
 		for (String ex : excludedWords) {
 			s = s.replace(ex, " ");
@@ -138,9 +144,10 @@ public class StringMatcher {
 		if (str == null || subStr == null) {
 			return false;
 		}
-		str = str.toLowerCase();
-		subStr = subStr.toLowerCase();
+		str = preprocessString(str);
+		subStr = preprocessString(subStr);
 		subStr = Pattern.quote(subStr);
+		
 		return str.matches("^" + subStr + "\\W.*|.*\\W" + subStr + "\\W.*|.*\\W" + subStr + "$");
 	}
 	
@@ -197,6 +204,16 @@ public class StringMatcher {
 		System.out.println(contains("Cervicitis", "Acute cervicitis"));
 		System.out.println(contains("Acute cervicitis", "Cervicitis"));
 		System.out.println(stemFuzzyMatch("Acute kidney failure", "Acute kidney failure, stage 1"));
+		
+		System.out.println(contains("Cholera due to Vibrio cholerae O1, biovar eltor", "Vibrio cholera O1, biovar eltor"));
+		System.out.println(contains(preprocessString("Cholera due to Vibrio cholerae O1, biovar eltor"), preprocessString("Vibrio cholera O1, biovar eltor")));
+
+		System.out.println(preprocessString("Cholera due to Vibrio cholerae O1, biovar eltor"));
+		System.out.println(preprocessString("Vibrio cholera O1, biovar eltor"));
+		
+		String dif = replaceStringUsingStems("Cholera due to Vibrio cholerae O1, biovar eltor", "Vibrio cholera O1, biovar eltor", " ");
+		System.out.println(dif);
+		System.out.println(stemFuzzyMatch("Cholera", dif));
 	}
 	
 	
