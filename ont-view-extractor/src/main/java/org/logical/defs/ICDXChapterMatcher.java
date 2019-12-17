@@ -33,7 +33,7 @@ public class ICDXChapterMatcher {
 	private static transient Logger log = Logger.getLogger(ICDXChapterMatcher.class);
 	
 	private static final String COL_SEPARATOR = "\t";
-	private static final String VALUE_SEPARATOR = "\\*";
+	private static final String VALUE_SEPARATOR = "*";
 	private static final String QUOTE = "\"";
 	
 	public static final String PREF_NAME_ABREV = "P";

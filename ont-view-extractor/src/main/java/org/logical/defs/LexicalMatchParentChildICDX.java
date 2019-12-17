@@ -159,7 +159,8 @@ public class LexicalMatchParentChildICDX {
 		matchedICDString = matchedICDString.toLowerCase();
 		matchedChapterXString = matchedChapterXString.toLowerCase();
 		
-		String childWithoutXValue = matchedICDString.replace(matchedChapterXString, " ");
+		//String childWithoutXValue = matchedICDString.replace(matchedChapterXString, " ");
+		String childWithoutXValue = StringMatcher.replaceStringUsingStems(matchedICDString, matchedChapterXString, " ");
 		
 		int score = StringMatcher.stemFuzzyMatch(parentMatchString, childWithoutXValue);
 		
@@ -170,6 +171,7 @@ public class LexicalMatchParentChildICDX {
 		}
 	}
 
+	
 	
 	private void writeLine(String icdClsId, String xChapterId, String parentId, String icdTitle, String chapterXPrefName,
 			String parentTitle, String matchedICDString, String icdMatchType, String matchedChapterXString, String chapterXMatchType,
