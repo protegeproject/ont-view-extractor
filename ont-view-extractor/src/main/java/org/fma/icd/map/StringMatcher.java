@@ -16,7 +16,9 @@ public class StringMatcher {
 	
 	public final static List<String> excludedAnnotations = Arrays.asList("DT","IN","TO","CC");
 	public final static List<String> excludedWords = Arrays.asList
-			(" to "," the ", "The ", " a "," an "," of ", "(", ")", "NOS", ", nos", "'s"," in ", ",");
+			("not elsewhere classified", " due to ", " to "," the ", "The ", " a "," an "," of ", "(", ")", "NOS", ", nos", "'s"," in ", ",",
+					 " other ", " and ", "or ", " unspecified ", " with ", " by ", " on ", " from ", ":",
+					 "complicating", " cause");
 	public final static String LEFT = "left";
 	public final static String RIGHT = "right";
 	public final static int LEFT_RIGHT_NO_MATCH_SCORE = 0;
@@ -39,9 +41,9 @@ public class StringMatcher {
 		s1 = preprocessString(s1);
 		s2 = preprocessString(s2);
 		
-		if (leftRightNoMatch(s1,s2) == true) {
-			return LEFT_RIGHT_NO_MATCH_SCORE;
-		}
+//		if (leftRightNoMatch(s1,s2) == true) {
+//			return LEFT_RIGHT_NO_MATCH_SCORE;
+//		}
 		return simpleFuzzyMatch(s1, s2);
 	}
 	
@@ -98,6 +100,8 @@ public class StringMatcher {
 		s = s.replace("teeth", "tooth");
 		s = s.replace("feet", "foot");
 		s = s.replace("coeliac", "celiac");
+		//s = s.replace("renal", "kidney");
+		
 		return s;
 	}
 
@@ -184,7 +188,15 @@ public class StringMatcher {
 		compareStringMatchMethods("Chlamydial colitis", "Chlamydia");
 		compareStringMatchMethods(preprocessString("Chlamydial colitis"), preprocessString("Chlamydia"));
 		
+		System.out.println(preprocessString("46,XX androgen-induced disorder of sex development due to maternal Krukenberg tumour"));
+		
+		
+		System.out.println(preprocessString("Abscess of tendon sheath : lower leg"));
+		
 		System.out.println(contains("Tibial muscular (dystrophy), \\[Udd-type]", "\\"));
+		System.out.println(contains("Cervicitis", "Acute cervicitis"));
+		System.out.println(contains("Acute cervicitis", "Cervicitis"));
+		System.out.println(stemFuzzyMatch("Acute kidney failure", "Acute kidney failure, stage 1"));
 	}
 	
 	
