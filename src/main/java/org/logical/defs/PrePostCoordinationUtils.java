@@ -35,9 +35,14 @@ public class PrePostCoordinationUtils {
 	public static final String LOG_DEF_MISSING = "MISSING_LOG_DEF";
 	public static final String LOG_DEF_MATCH_NS = "MATCH_NS";
 	public static final String LOG_DEF_MATCH_N = "MATCH_N";
+	public static final String LOG_DEF_MISSING_FILLER = "MISSING_FILLER";
 	public static final String LOG_DEF_NO_MATCH_FILLER = "NO_MATCH_FILLER";
 	public static final String LOG_DEF_NO_MATCH_SUPER = "NO_MATCH_SUPER";
 
+	private enum CheckFillerResults {
+		EMPTY_FILLERS, FOUND, NOT_FOUND;
+	}
+	
 	
 	private OWLModel owlModel;
 	private ICDContentModel cm;
@@ -51,13 +56,14 @@ public class PrePostCoordinationUtils {
 	}
 	
 	
-	public String checkPostCoordinationValues(RDFSNamedClass chapterXCls, RDFSNamedClass parentCls) {
-
-		// Theroretically, there could be multiple pc props, but there is no way to say
-		// which one it is,
-		// as they have the same top class, so we return only one
-		RDFProperty pcProp = getMatchingPCProps(chapterXCls, parentCls);
+	public String checkPostCoordinationValues(RDFProperty pcProp, RDFSNamedClass chapterXCls, RDFSNamedClass parentCls) {
+		pcProp = getAssocPostCoordinationProperty(chapterXCls);
 		if (pcProp == null) {
+			return PC_RES_UNKNOWN_PROP;
+		}
+		
+		List<RDFProperty> selectedPCAxes = cm.getAllSelectedPostcoordinationAxes(parentCls, false);
+		if (selectedPCAxes.contains(pcProp) == false) { //not a selected postcoordination prop
 			return PC_RES_MISSING;
 		}
 
@@ -76,23 +82,19 @@ public class PrePostCoordinationUtils {
 			pcRes = PC_RES_UNKNOWN_PROP;
 		}
 
-		return getPCResultString(pcProp, pcRes);
+		return pcRes;
 	}
 
-	
-	private RDFProperty getMatchingPCProps(RDFSNamedClass chapterXCls, RDFSNamedClass parentCls) {
-		List<RDFProperty> selectedPCProps = cm.getAllSelectedPostcoordinationAxes(parentCls, false);
-		
-		if (selectedPCProps.isEmpty()) {
-			return null;
-		}
-		
+	// Theoretically, there could be multiple pc props, but there is no way to say, which one it is,
+	// as they have the same top class, so we return only one
+	public RDFProperty getAssocPostCoordinationProperty(RDFSNamedClass chapterXCls) {
 		Collection<RDFSClass> chapterXSuperClses = chapterXCls.getSuperclasses(true);
 		
-		for (RDFProperty pcProp : selectedPCProps) {
-			RDFSNamedClass topChapterXParent = pcMaps.getChapterXTopParent(pcProp);
+		Set<RDFSNamedClass> topChapterXClses = pcMaps.getChapterXTopParents();
+		
+		for (RDFSNamedClass topChapterXParent : topChapterXClses) {
 			if (chapterXSuperClses.contains(topChapterXParent)) {
-				return pcProp;
+				return pcMaps.getPostCoordPropForXChapterTopParent(topChapterXParent);
 			}
 		}
 		
@@ -162,7 +164,6 @@ public class PrePostCoordinationUtils {
 		}
 		
 		return found == true ? PC_RES_MATCH : PC_RES_NO_MATCH;
-	
 	}
 
 	
@@ -183,29 +184,37 @@ public class PrePostCoordinationUtils {
 		}
 		
 		Collection<RDFSClass> eqClses = childCls.getEquivalentClasses();
-		if (checkFillers(chapterXCls, eqClses) == true) {
+		CheckFillerResults checkEqFillers = checkFillers(chapterXCls, eqClses);
+		if (checkEqFillers == CheckFillerResults.FOUND) {
 			return LOG_DEF_MATCH_NS;
 		}
 		
 		Collection<RDFSClass> superClses = childCls.getSuperclasses(false);
-		if (checkFillers(chapterXCls, superClses) == true) {
+		CheckFillerResults checkSuperFillers = checkFillers(chapterXCls, superClses);
+		if (checkSuperFillers == CheckFillerResults.FOUND) {
 			return LOG_DEF_MATCH_N;
 		}
 		
-		return LOG_DEF_NO_MATCH_FILLER;
+		return (checkEqFillers == CheckFillerResults.EMPTY_FILLERS && checkSuperFillers == CheckFillerResults.EMPTY_FILLERS) ?
+					LOG_DEF_MISSING_FILLER : LOG_DEF_NO_MATCH_FILLER;
 	}
 
 
-	private boolean checkFillers(RDFSNamedClass chapterXCls, Collection<RDFSClass> clses) {
+	private CheckFillerResults checkFillers(RDFSNamedClass chapterXCls, Collection<RDFSClass> clses) {
+		boolean fillersFound = false;
+		
 		for (RDFSClass cls : clses) {
 			if (cls instanceof OWLIntersectionClass) {
 				Collection<RDFSNamedClass> fillers = getFillers((OWLIntersectionClass) cls);
+				if (fillers.isEmpty() == false) {
+					fillersFound = true;
+				}
 				if (fillers.contains(chapterXCls)) {
-					return true;
+					return CheckFillerResults.FOUND;
 				}
 			}
 		}
-		return false;
+		return fillersFound ? CheckFillerResults.NOT_FOUND : CheckFillerResults.EMPTY_FILLERS;
 	}
 	
 	private Collection<RDFSNamedClass> getFillers(OWLIntersectionClass intCls) {
@@ -226,6 +235,10 @@ public class PrePostCoordinationUtils {
 
 	public ICDContentModel getICDContentModel() {
 		return cm;
+	}
+	
+	public String getPublicId(RDFSNamedClass cls) {
+		return cm.getPublicId(cls);
 	}
 	
 }

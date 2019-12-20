@@ -15,12 +15,14 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import edu.stanford.smi.protege.model.Project;
 import edu.stanford.smi.protegex.owl.model.OWLModel;
+import edu.stanford.smi.protegex.owl.model.RDFProperty;
 import edu.stanford.smi.protegex.owl.model.RDFSNamedClass;
 
 public class CheckPrePostCoordination {
 
 	private static transient Logger log = Logger.getLogger(CheckPrePostCoordination.class);
 
+	
 
 	private OWLModel owlModel;
 	private PrePostCoordinationUtils pcUtils;
@@ -69,7 +71,7 @@ public class CheckPrePostCoordination {
 		try {
 			String[] data = row.split(StringUtils.COL_SEPARATOR);
 
-			if (data.length < 3) {
+			if (data.length < 4) {
 				log.warn("Ignoring row because incomplete: " + row);
 				return;
 			}
@@ -77,28 +79,48 @@ public class CheckPrePostCoordination {
 			String childId = data[0];
 			String chapterXId = data[1];
 			String parentId = data[2];
+			String childTitle = data[3];
 			
 			RDFSNamedClass childCls = owlModel.getRDFSNamedClass(childId);
 			RDFSNamedClass parentCls = owlModel.getRDFSNamedClass(parentId);
 			RDFSNamedClass chapterXCls = owlModel.getRDFSNamedClass(chapterXId);
 			
-			String postCoordResult = pcUtils.checkPostCoordinationValues(chapterXCls, parentCls);
+			RDFProperty pcProp = pcUtils.getAssocPostCoordinationProperty(chapterXCls);
+			
+			String postCoordResult = pcUtils.checkPostCoordinationValues(pcProp, chapterXCls, parentCls);
 			String logDefResult = pcUtils.checkLogicalDefinition(childCls, chapterXCls, parentCls);
 			
-			writeLine(row, postCoordResult, logDefResult);
+			String publicIdChild = pcUtils.getPublicId(childCls);
+			String publicIdParent = pcUtils.getPublicId(parentCls);
+			String publicIdChapterXCls = pcUtils.getPublicId(chapterXCls);
+			
+			String pcPropStr = pcProp == null ? PrePostCoordinationUtils.PC_RES_UNKNOWN_PROP : pcProp.getName();
+			
+			String publicBrowserChildLink = StringUtils.getPublicBrowserLink(publicIdChild, childTitle);
+			String iCatLink = StringUtils.getiCatLink(childId, childTitle);
+			
+			writeLine(row, publicIdChild, publicIdChapterXCls, publicIdParent, pcPropStr,
+					postCoordResult, logDefResult, iCatLink, publicBrowserChildLink);
 
 		} catch (Exception e) {
 			log.error("Error at processing row: " + row, e);
 		}
-
 	}
 
 
-	private void writeLine(String row, String pcRes, String logDefResult) {
+	private void writeLine(String row, String publicIdChild, String publicIdChapterXCls, String publicIdParent, 
+			String pcPropStr, String postCoordResult, String logDefResult, String iCatLink, String publicBrowserChildLink) {
 		try {
-			resultCSVWriter.write(row + StringUtils.COL_SEPARATOR +
-								  StringUtils.toCsvField(pcRes) + StringUtils.COL_SEPARATOR + 
-								  StringUtils.toCsvField(logDefResult));
+			resultCSVWriter.write(
+					StringUtils.toCsvField(publicIdChild) + StringUtils.COL_SEPARATOR +
+					StringUtils.toCsvField(publicIdChapterXCls) + StringUtils.COL_SEPARATOR +
+					StringUtils.toCsvField(publicIdParent) + StringUtils.COL_SEPARATOR +
+					row + StringUtils.COL_SEPARATOR +
+					StringUtils.toCsvField(pcPropStr) + StringUtils.COL_SEPARATOR +
+					StringUtils.toCsvField(postCoordResult) + StringUtils.COL_SEPARATOR + 
+					StringUtils.toCsvField(logDefResult) + StringUtils.COL_SEPARATOR + 
+					iCatLink + StringUtils.COL_SEPARATOR +
+					publicBrowserChildLink);
 			resultCSVWriter.newLine();
 		} catch (IOException ioe) {
 			log.error("Could not export line for: " + row);
