@@ -1,5 +1,7 @@
 package org.fma.icd.map;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collection;
 
 import org.semanticweb.owlapi.model.OWLClass;
@@ -8,6 +10,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import edu.stanford.smi.protegex.owl.model.RDFResource;
 
 public class StringUtils {
+	
+	public static final String PUBLIC_BROWSER_BASE_URL = "https://icd.who.int/dev11/f/en#/";
+	public static final String ICAT_BASE_URL = "https://icat.stanford.edu/";
+	public static final String ICAT_ARGS = "?ontology=ICD&tab=ClassesTab&id=";
 	
 	public static final String COL_SEPARATOR = "\t";
 	public static final String VALUE_SEPARATOR = "*";
@@ -95,4 +101,40 @@ public class StringUtils {
 		str = str.replace("'", "");
 		return str;
 	}
+	
+	public static String getURLEncodedString(String str) {
+		try {
+			return URLEncoder.encode(str, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return str; //should never get here
+	}
+	
+	public static String getPublicBrowserLink(String id, String prettyName) {
+		if (id == null) {
+			return PUBLIC_BROWSER_BASE_URL;
+		}
+		if (prettyName == null) {
+			prettyName = id;
+		}
+		
+		return getHyperlink(PUBLIC_BROWSER_BASE_URL + getURLEncodedString(id), prettyName);
+	}
+	
+	public static String getiCatLink(String id, String prettyName) {
+		if (id == null) {
+			return ICAT_BASE_URL;
+		}
+		if (prettyName == null) {
+			prettyName = id;
+		}
+		
+		return getHyperlink(ICAT_BASE_URL + ICAT_ARGS + getURLEncodedString(id), prettyName);
+	}
+	
+	public static String getHyperlink(String link, String prettyName) {
+		return "=HYPERLINK(" + "\"" + link + "\"" + "," + "\"" + prettyName + "\"" + ")";
+	}
+	
 }
