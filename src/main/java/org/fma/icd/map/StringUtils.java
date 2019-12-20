@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 
+import edu.stanford.smi.protegex.owl.model.RDFResource;
+
 public class StringUtils {
 	
 	public static final String COL_SEPARATOR = "\t";
@@ -62,4 +64,35 @@ public class StringUtils {
 		return s.toString();
 	}
 	
+	
+	public static String getLabelCollectionString(Collection<RDFResource> resources) {
+		StringBuffer s = new StringBuffer();
+		for (RDFResource res : resources) {
+			s.append(res.getBrowserText());
+			s.append(VALUE_SEPARATOR);
+		}
+		//remove last value separator
+		if (s.length() > 0) {
+			s.delete(s.length()-VALUE_SEPARATOR.length(),s.length());
+		}
+		return s.toString();
+	}
+	
+	public static String getLabelCollection(Collection<RDFResource> resources) {
+		StringBuffer s = new StringBuffer();
+		for (RDFResource res : resources) {
+			s.append(res.getName());
+			s.append(VALUE_SEPARATOR);
+		}
+		//remove last value separator
+		if (s.length() > 0) {
+			s.delete(s.length()-VALUE_SEPARATOR.length(),s.length());
+		}
+		return s.toString();
+	}
+	
+	public static String stripSingleQuotes(String str) {
+		str = str.replace("'", "");
+		return str;
+	}
 }
