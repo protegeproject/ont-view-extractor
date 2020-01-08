@@ -1,5 +1,8 @@
 package org.fma.icd.map;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -78,5 +81,45 @@ public class OWLAPIUtil {
 		return superClses;
 	}
 	
-
+	public static Set<List<OWLClass>> getPathsToSuperclass(OWLClass owlClass, OWLClass superClass, 
+			OWLOntology ontology, OWLReasoner reasoner) {
+		Set<List<OWLClass>> res = new HashSet<List<OWLClass>>();
+		//OWLClass owlThing = ontology.getOWLOntologyManager().getOWLDataFactory().getOWLThing();
+		Set<List<OWLClass>> paths = new HashSet<List<OWLClass>>();
+		paths.add(Arrays.asList(new OWLClass[] {owlClass}));
+		while ( ! paths.isEmpty() ) {
+			Set<List<OWLClass>> nextPaths = new HashSet<List<OWLClass>>();
+			for (List<OWLClass> path : paths) {
+				OWLClass lastClassInPath = path.get(path.size() - 1);
+				if (lastClassInPath.equals(superClass)) {
+					res.add(path);
+				}
+				else if (lastClassInPath.isTopEntity()) {
+					//do nothing. We can disreagard this is path,
+					//as it did not lead to the superClass
+					
+					//TODO: delete this condition after we fix getNamedSuperClasses
+				}
+				else {
+					Set<OWLClass> superclasses = getNamedSuperclasses(lastClassInPath, ontology, reasoner, true);
+					for (OWLClass superclass : superclasses) {
+						if (path.contains(superclass))  {
+							//do nothing. We can disregard this path,
+							//as it contains a loop and exploring all such paths to the superClass
+							//will never end.
+						}
+						else {
+							List<OWLClass> newPath = new ArrayList<OWLClass>(path.size() + 1);
+							path.stream().forEach((n)->{newPath.add(n);});
+							newPath.add(superclass);
+							nextPaths.add(newPath);
+						}
+					}
+					
+				}
+				paths = nextPaths;
+			}
+		}
+		return res;
+	}
 }
