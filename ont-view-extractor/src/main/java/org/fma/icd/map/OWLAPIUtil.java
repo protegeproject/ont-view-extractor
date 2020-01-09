@@ -63,7 +63,7 @@ public class OWLAPIUtil {
 		Stream<OWLClass> subclsesStream = reasoner.getSubClasses(owlClass, direct).entities();
 		
 		subclsesStream.
-			filter(c -> c.isBottomEntity() == false).
+			filter(c -> c.isBottomEntity() == false).	//filtering out owl:Nothing
 			forEach(subclses::add);
 
 		return subclses;
@@ -75,7 +75,7 @@ public class OWLAPIUtil {
 		Stream<OWLClass> superClsesStream = reasoner.getSuperClasses(owlClass, direct).entities();
 		
 		superClsesStream.
-			filter(c -> c.isBottomEntity() == false).
+			filter(c -> c.isBottomEntity() == false).	//filtering out owl:Nothing, which is never a desirable superclass to be returned
 			forEach(superClses::add);
 
 		return superClses;
@@ -95,10 +95,8 @@ public class OWLAPIUtil {
 					res.add(path);
 				}
 				else if (lastClassInPath.isTopEntity()) {
-					//do nothing. We can disreagard this is path,
+					//do nothing. We can disregard this path,
 					//as it did not lead to the superClass
-					
-					//TODO: delete this condition after we fix getNamedSuperClasses
 				}
 				else {
 					Set<OWLClass> superclasses = getNamedSuperclasses(lastClassInPath, ontology, reasoner, true);

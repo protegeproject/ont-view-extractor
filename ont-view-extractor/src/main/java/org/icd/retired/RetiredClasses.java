@@ -62,7 +62,7 @@ public class RetiredClasses {
 		int i = 0;
 		
 		for (OWLClass subcls : allSubclses) {
-			checkSubcls(subcls);
+			checkSubcls(subcls, icdClses);
 			i++;
 			
 			if (i % 100 == 0) {
@@ -70,33 +70,54 @@ public class RetiredClasses {
 			}
 		}
 
-		log.info("Ended export of X Chapter");
+		log.info("Finished generating list of retired to be deleted");
 	}
 
 	
 	
-	private void checkSubcls(OWLClass subcls) {
+	private void checkSubcls(OWLClass subcls, OWLClass icdCategory) {
 		
 		String subclsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, subcls);
-		Set<OWLClass> superClses = OWLAPIUtil.getNamedSuperclasses(subcls, icdOnt, reasoner, true);
+		Set<OWLClass> superClses = OWLAPIUtil.getNamedSuperclasses(subcls, icdOnt, reasoner, false);
 		
 		for (OWLClass superCls : superClses) {
-			String superClsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls);
-			boolean isMatch = StringMatcher.contains(superClsLabel.toLowerCase(), "retired");
-			
-			if (isMatch == true) {
-				writeLine(subcls, superCls, subclsLabel, superClsLabel);
-				
-				System.out.println(subcls + " " + superCls + " " + subclsLabel + " " +  superClsLabel);
-				for (List<OWLClass> path : OWLAPIUtil.getPathsToSuperclass(subcls, superCls, icdOnt, reasoner)) {
+			if (labelContainsRetired(superCls)) {
+				boolean toBeDeleted = true;
+				for (List<OWLClass> path : OWLAPIUtil.getPathsToSuperclass(subcls, icdCategory, icdOnt, reasoner)) {
 					if (! path.contains(superCls)) {
-						System.out.println(OWLAPIUtil.getPathsToSuperclass(subcls, superCls, icdOnt, reasoner));
+						//this is an alternative path to ICD Categories, which does not go through the retired class identified above.
+						//We need to check that this path does not contain another retired class either
+						boolean nonRetiredPath = true;
+						for (OWLClass cls : path) {
+							if (labelContainsRetired(cls)) {
+								nonRetiredPath = false;
+								break;
+							}
+						}
+						if (nonRetiredPath) {
+							System.out.println(subcls + " / " + superCls + " / " + subclsLabel + " / " +  OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls));
+							System.out.println(OWLAPIUtil.getPathsToSuperclass(subcls, icdCategory, icdOnt, reasoner));
+							toBeDeleted = false;
+							break;
+						}
 					}
+				}
+				if (toBeDeleted) {
+					//TODO: check for ICD-10 code and not being part of the released set
+					writeLine(subcls, superCls, subclsLabel, OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls));
 				}
 			}
 		}
 	}
 	
+	private boolean labelContainsRetired(OWLClass cls) {
+		String clsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, cls);
+		if (clsLabel == null) { //e.g. for owl:Thing
+			return false;
+		}
+
+		return StringMatcher.contains(clsLabel.toLowerCase(), "retired");
+	}
 	
 	private void writeLine(OWLClass subcls, OWLClass supercls, String subclsLabel, String superclsLabel) {
 		try {
