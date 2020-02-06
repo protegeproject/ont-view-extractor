@@ -226,6 +226,7 @@ public class PrePostCoordinationUtils {
 				if (filler instanceof RDFSNamedClass) {
 					fillers.add((RDFSNamedClass) filler);
 				}
+				//TODO: we should check also for the instances of reference terms..
 			}
 			
 		}
