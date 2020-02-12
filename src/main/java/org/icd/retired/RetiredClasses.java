@@ -21,18 +21,22 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
+import edu.stanford.smi.protegex.owl.model.impl.OWLUtil;
+
 
 public class RetiredClasses {
 
 	private static transient Logger log = Logger.getLogger(RetiredClasses.class);
 
 	public final static String ICD_CATEGORIES = "http://who.int/icd#ICDCategory";
-	public static final String ICD_SYN_PROP = "http://who.int/icd_flattened/synonym";
+//	public static final String ICD_SYN_PROP = "http://who.int/icd_flattened/synonym";
+	public static final String ICAT_ID = "http://id.who.int/icd/schema/icatId";
 
 	private OWLOntologyManager ontManager;
 	private OWLReasoner reasoner;
 	private OWLOntology icdOnt;
-	private OWLAnnotationProperty synProp;
+//	private OWLAnnotationProperty synProp;
+	private OWLAnnotationProperty icatIdProp;
 
 	private BufferedWriter resultCSVWriter;
 
@@ -43,7 +47,8 @@ public class RetiredClasses {
 		this.icdOnt = sourceOnt;
 		this.resultCSVWriter = bufferedWriter;
 		this.reasoner = initReasoner(icdOnt);
-		this.synProp = manager.getOWLDataFactory().getOWLAnnotationProperty(ICD_SYN_PROP);
+//		this.synProp = manager.getOWLDataFactory().getOWLAnnotationProperty(ICD_SYN_PROP);
+		this.icatIdProp = manager.getOWLDataFactory().getOWLAnnotationProperty(ICAT_ID);
 	}
 
 	public void export() throws IOException {
@@ -55,7 +60,7 @@ public class RetiredClasses {
 	private void exportClasses() {
 		log.info("Starting comparison..");
 
-		OWLClass icdClses = ontManager.getOWLDataFactory().getOWLClass(ICD_CATEGORIES);
+		OWLClass icdClses = getRootClass();
 
 		Set<OWLClass> allSubclses = OWLAPIUtil.getNamedSubclasses(icdClses, icdOnt, reasoner, false);
 		
@@ -74,10 +79,34 @@ public class RetiredClasses {
 	}
 
 	
+	private OWLClass getRootClass() {
+		//original
+		//return ontManager.getOWLDataFactory().getOWLClass(ICD_CATEGORIES);
+		
+		//new
+		return ontManager.getOWLDataFactory().getOWLThing();
+	}
+
+	private String getClassLabel(OWLClass cls) {
+		//original
+		//return OWLAPIUtil.getRDFSLabelValue(icdOnt, cls);
+		
+		//new
+		return OWLAPIUtil.getSKOSPrefLabelValue(icdOnt, cls);
+	}
+
+	private String getClassIRI(OWLClass cls) {
+		//original
+		//return cls.getIRI().toString();
+		
+		//new
+		return OWLAPIUtil.getStringAnnotationValue(icdOnt, cls, icatIdProp);
+	}
+	
 	
 	private void checkSubcls(OWLClass subcls, OWLClass icdCategory) {
 		
-		String subclsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, subcls);
+		String subclsLabel = getClassLabel(subcls);
 		Set<OWLClass> superClses = OWLAPIUtil.getNamedSuperclasses(subcls, icdOnt, reasoner, false);
 		
 		for (OWLClass superCls : superClses) {
@@ -95,7 +124,7 @@ public class RetiredClasses {
 							}
 						}
 						if (nonRetiredPath) {
-							System.out.println(subcls + " / " + superCls + " / " + subclsLabel + " / " +  OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls));
+							System.out.println(subcls + " / " + superCls + " / " + subclsLabel + " / " +  getClassLabel(superCls));
 							System.out.println(OWLAPIUtil.getPathsToSuperclass(subcls, icdCategory, icdOnt, reasoner));
 							toBeDeleted = false;
 							break;
@@ -104,14 +133,14 @@ public class RetiredClasses {
 				}
 				if (toBeDeleted) {
 					//TODO: check for ICD-10 code and not being part of the released set
-					writeLine(subcls, superCls, subclsLabel, OWLAPIUtil.getRDFSLabelValue(icdOnt, superCls));
+					writeLine(subcls, superCls, subclsLabel, getClassLabel(superCls));
 				}
 			}
 		}
 	}
 	
 	private boolean labelContainsRetired(OWLClass cls) {
-		String clsLabel = OWLAPIUtil.getRDFSLabelValue(icdOnt, cls);
+		String clsLabel = getClassLabel(cls);
 		if (clsLabel == null) { //e.g. for owl:Thing
 			return false;
 		}
@@ -121,8 +150,8 @@ public class RetiredClasses {
 	
 	private void writeLine(OWLClass subcls, OWLClass supercls, String subclsLabel, String superclsLabel) {
 		try {
-			resultCSVWriter.write(subcls.getIRI().toString() + StringUtils.COL_SEPARATOR +
-					supercls.getIRI().toString() + StringUtils.COL_SEPARATOR + 
+			resultCSVWriter.write(getClassIRI(subcls) + StringUtils.COL_SEPARATOR +
+					getClassIRI(supercls) + StringUtils.COL_SEPARATOR + 
 					subclsLabel + StringUtils.COL_SEPARATOR +
 					superclsLabel);
         			
