@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import org.semanticweb.owlapi.vocab.SKOSVocabulary;
 
 
 public class OWLAPIUtil {
@@ -27,6 +28,12 @@ public class OWLAPIUtil {
 		OWLAnnotationProperty rdfsLabel = ont.getOWLOntologyManager().getOWLDataFactory().
 				getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 		return getStringAnnotationValue(ont, cls, rdfsLabel);
+	}
+	
+	public static String getSKOSPrefLabelValue(OWLOntology ont, OWLClass cls) {
+		OWLAnnotationProperty skosPrefLabel = ont.getOWLOntologyManager().getOWLDataFactory().
+				getOWLAnnotationProperty(SKOSVocabulary.PREFLABEL.getIRI());
+		return getStringAnnotationValue(ont, cls, skosPrefLabel);
 	}
 	
 	public static String getStringAnnotationValue(OWLOntology ont, OWLClass cls, OWLAnnotationProperty prop) {
