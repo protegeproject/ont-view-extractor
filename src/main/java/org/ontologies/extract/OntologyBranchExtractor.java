@@ -27,6 +27,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
 /**
+ * OWL Branch extractor for OWL files using the OWL API.
+ * 
  * @author Tania Tudorache
  *
  */
