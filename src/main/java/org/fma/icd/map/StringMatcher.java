@@ -15,10 +15,16 @@ import me.xdrop.fuzzywuzzy.FuzzySearch;
 public class StringMatcher {
 	
 	public final static List<String> excludedAnnotations = Arrays.asList("DT","IN","TO","CC");
+	
 	public final static List<String> excludedWords = Arrays.asList
-			("not elsewhere classified", " due to ", " to "," the ", "The ", " a "," an "," of ", "(", ")", "NOS", ", nos", "'s"," in ", ",",
-					 " other ", " and ", "or ", " unspecified ", " with ", " by ", " on ", " from ", ":",
-					 "complicating", " cause");
+			(", not elsewhere classified", "not elsewhere classified", "\\bdue to\\b", "\\bto\\b","\\bthe\\b",
+					"The\\b", "\\ba\\b","\\ban\\b",
+					"\\bof\\b", "\\(", "\\)", "\\bNOS\\b", ", nos", "'s","\\bin\\b", ",",
+					 "\\band\\b", "\\bor\\b", "\\bunspecified\\b", "\\bwith\\b", 
+					 "\\bby\\b", "\\bon\\b", "\\bfrom\\b", ":",
+					 "complicating");
+					//"\\bother\\b"
+	
 	public final static String LEFT = "left";
 	public final static String RIGHT = "right";
 	public final static int LEFT_RIGHT_NO_MATCH_SCORE = 0;
@@ -64,8 +70,11 @@ public class StringMatcher {
 		return false;
 	}
 
-
 	public static String preprocessString(String s) {
+		return preprocessString(s, true);
+	}
+	
+	public static String preprocessString(String s, boolean doStemming) {
 		//first try to get it from the cache
 		String cached = str2stemCache.get(s);
 		if (cached != null) {
@@ -74,25 +83,29 @@ public class StringMatcher {
 		
 		StringBuffer buff = new StringBuffer();
 		
-		//this stemmer is not perfect, but at least it is biased the same way
-		//e.g. "house" -> "hous"
-		Stemmer stemmer = new Stemmer();
-		
 		s = removeExcludedWords(s);
 		s = s.toLowerCase();
 		s = replaceWords(s);
+		String ret = s;
 		
-		StringTokenizer st = new StringTokenizer(s);
-		while (st.hasMoreTokens()) {
-			String token = st.nextToken();
-			buff.append(stemmer.stem(token));
-			buff.append(" ");
+		if (doStemming == true) {
+			//this stemmer is not perfect, but at least it is biased the same way
+			//e.g. "house" -> "hous"
+			Stemmer stemmer = new Stemmer();
+			StringTokenizer st = new StringTokenizer(s);
+			while (st.hasMoreTokens()) {
+				String token = st.nextToken();
+				buff.append(stemmer.stem(token));
+				buff.append(" ");
+			}
+			ret = buff.toString();
 		}
 		
-		String ret = buff.toString().trim();
+		ret = ret.trim();
 		str2stemCache.put(s, ret);
 		return ret;
 	}
+	
 	
 	private static String replaceWords(String s) {
 		s = s.replace("neural", "nerve");
@@ -114,8 +127,11 @@ public class StringMatcher {
 	
 	public static String removeExcludedWords(String s) {
 		for (String ex : excludedWords) {
-			s = s.replace(ex, " ");
+			s = s.replaceAll(ex, " ");
 		}
+		s = s.replaceAll("\\s+", " ");
+		s = s.trim();
+		
 		return s;
 	}
 	
@@ -131,7 +147,8 @@ public class StringMatcher {
 		for (Sentence sent : doc.sentences()) {
 			for (int i = 0; i < sent.words().size(); i++) {
 				String posTag = sent.posTag(i);
-				if (posTag != null && excludedAnnotations.contains(posTag) == false) {
+				//if (posTag != null && excludedAnnotations.contains(posTag) == false) {
+				if (posTag != null) {
 					buff.append(sent.lemma(i));
 					buff.append(" ");
 				}
@@ -141,14 +158,22 @@ public class StringMatcher {
 	}
 	
 	public static boolean contains(String str, String subStr) {
+		return contains(str, subStr, true);
+	}
+	
+	public static boolean contains(String str, String subStr, boolean preprocess) {
 		if (str == null || subStr == null) {
 			return false;
 		}
-		str = preprocessString(str);
-		subStr = preprocessString(subStr);
+		
+		if (preprocess == true) {
+			str = preprocessString(str);
+			subStr = preprocessString(subStr);
+		}
+		
 		subStr = Pattern.quote(subStr);
 		
-		return str.matches("^" + subStr + "\\W.*|.*\\W" + subStr + "\\W.*|.*\\W" + subStr + "$");
+		return str.matches("^" + subStr +"|" + subStr + "\\W.*|.*\\W" + subStr + "\\W.*|.*\\W" + subStr + "$");
 	}
 	
 	private static void compareStringMatchMethods(String s1, String s2) {
@@ -214,6 +239,33 @@ public class StringMatcher {
 		String dif = replaceStringUsingStems("Cholera due to Vibrio cholerae O1, biovar eltor", "Vibrio cholera O1, biovar eltor", " ");
 		System.out.println(dif);
 		System.out.println(stemFuzzyMatch("Cholera", dif));
+		
+		System.out.println("/n*******************/n");
+		compareStringMatchMethods("Threat to breathing by strangulation with undetermined intent", "Exposure to threat to breathing by strangulation");
+		compareStringMatchMethods("Fall or jump of undetermined intent from a height of 1 metre or more", "Exposure to fall from a height of 1 metre or more");
+	
+		compareStringMatchMethods("Fall or jump of undetermined intent from a height of 1 metre or more", "Exposure to fall on the same level or from less than 1 metre");
+		compareStringMatchMethods("Fall or jump of undetermined intent from a height of 1 metre or more", "Cholera due to Vibrio cholerae O1, biovar eltor");
+	
+		compareStringMatchMethods("Controlled fire, flame in building or structure","controlled fire in building or structure");
+		compareStringMatchMethods("Controlled fire, flame in building or structure","controlled fire");
+		compareStringMatchMethods("controlled fire", "Controlled fire, flame in building or structure");
+	
+		System.out.println("/n*******************/n");
+		
+		System.out.println(contains("abc def", "de", false));
+		System.out.println(contains("abc def", "def", false));
+		System.out.println(contains("abc def", "c d", false));
+		
+		System.out.println(contains("person, animal or plant", "person, animal or plant", false));
+		System.out.println(contains("abc", "abc", false));
+		
+		System.out.println("/n*******************/n");
+		
+		System.out.println(lemmatize("Unintentionally struck, kicked, or bumped by insect or bird"));
+		
+		System.out.println("a pedestrian".replaceAll("\\ba\\b", " "));
+		System.out.println(removeExcludedWords("a pedestrian"));
 	}
 	
 	

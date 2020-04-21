@@ -7,11 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 import org.fma.icd.map.FMAExtractedResult;
@@ -39,11 +37,18 @@ public class ICDXChapterMatcher {
 	public static final String PREF_NAME_ABREV = "P";
 	public static final String SYN_ABREV = "S";
 	
-	private static int FUZZY_MATCH_CUT_OFF = 95;
+	private static int FUZZY_MATCH_CUT_OFF = 80;
 			
-	public final static String ICD_CATEGORIES = "http://who.int/icd#ICDCategory";
-	public final static String X_CHAPTER = "http://who.int/icd#ChapterX";
-	public static final String ICD_SYN_PROP = "http://who.int/icd_flattened/synonym";
+	//public final static String ICD_CATEGORIES = "http://who.int/icd#ICDCategory";
+	//public final static String X_CHAPTER = "http://who.int/icd#ChapterX";
+	//public static final String ICD_SYN_PROP = "http://who.int/icd_flattened/synonym";
+	
+	//this is actually the top class; using now External Causes; can be anything
+	public final static String ICD_CATEGORIES = "http://id.who.int/icd/entity/850137482";
+	public final static String X_CHAPTER = "http://id.who.int/icd/entity/979408586";
+	
+	
+	public static final String ICD_SYN_PROP = "http://www.w3.org/2004/02/skos/core#altLabel";
 	
 	private OWLOntologyManager ontManager;
 	private OWLReasoner reasoner;
@@ -96,17 +101,16 @@ public class ICDXChapterMatcher {
 		List<ICDFMAMatchRecord> matchRecs = new ArrayList<ICDFMAMatchRecord>();
 		
 		String icdId = icdCls.getIRI().toString();
-		String icdTitle = OWLAPIUtil.getRDFSLabelValue(icdOnt, icdCls);
+		String icdTitle = getTitle(icdCls);
 		Collection<String> syns = OWLAPIUtil.getStringAnnotationValues(icdOnt, icdCls, synProp);
 		
 		
 		matchRecs.addAll(processTitle(icdId, icdTitle, true)); //ICD title -> FMA pref name
-		matchRecs.addAll(processTitle(icdId, icdTitle, false)); //ICD title -> FMA syns
-		matchRecs.addAll(processSyns(icdId, icdTitle, syns, true)); //ICD syn -> FMA pref name
-		matchRecs.addAll(processSyns(icdId, icdTitle, syns, false)); //ICD syn -> FMA syn
+		//matchRecs.addAll(processTitle(icdId, icdTitle, false)); //ICD title -> FMA syns
+		//matchRecs.addAll(processSyns(icdId, icdTitle, syns, true)); //ICD syn -> FMA pref name
+		//matchRecs.addAll(processSyns(icdId, icdTitle, syns, false)); //ICD syn -> FMA syn
 		
 		writeMatchRecords(matchRecs, resultCSVWriter);
-		
 	}
 	
 	private  List<ICDFMAMatchRecord> processTitle(String icdId, String icdTitle, boolean processWithFMAPrefName) {
@@ -186,13 +190,15 @@ public class ICDXChapterMatcher {
 		//return FuzzySearch.tokenSortPartialRatio(s1,s2);
 		boolean isMatch = StringMatcher.contains(icdClsString, xChapterString);
 		return (isMatch == true) ? 100 : 0;
+		//return FuzzySearch.tokenSetPartialRatio(icdClsString, xChapterString);
+		//return FuzzySearch.tokenSetRatio(StringMatcher.preprocessString(icdClsString), StringMatcher.preprocessString(xChapterString));
 	}
 	
 	
 	private void writeMatchRecords(List<ICDFMAMatchRecord> matchRecs, BufferedWriter writer) {
 		for (ICDFMAMatchRecord rec : matchRecs) {
 			OWLClass icdCls = ontManager.getOWLDataFactory().getOWLClass(rec.getIcdId());
-			String superclses = getCollectionString(getNamedSuperclasses(icdCls, icdOnt, true));
+			String superclses = getCollectionString(OWLAPIUtil.getNamedSuperclasses(icdCls, icdOnt, reasoner, true));
 			writeLine(rec.getIcdId(), rec.getFmaId(), rec.getIcdTitle(), rec.getFmaPrefLabel(),
 					rec.getMatchedICDString(), rec.getIcdMatchType(), rec.getMatchedFMAString(),
 					rec.getFmaMatchType(), Integer.toString(rec.getScore()), superclses, writer);
@@ -221,7 +227,7 @@ public class ICDXChapterMatcher {
 
 	private Collection<OWLClass> getICDClasses() {
 		OWLClass icdCatCls = ontManager.getOWLDataFactory().getOWLClass(ICD_CATEGORIES);
-		Set<OWLClass> allClses = getNamedSubclasses(icdCatCls, icdOnt, false);
+		Set<OWLClass> allClses = OWLAPIUtil.getNamedSubclasses(icdCatCls, icdOnt, reasoner, false);
 		allClses.removeAll(chapterXClses.keySet());
 		return allClses;
 	}
@@ -230,10 +236,12 @@ public class ICDXChapterMatcher {
 		log.info("Started caching X Chapter.."); 
 		
 		OWLClass chapterXTopClass = ontManager.getOWLDataFactory().getOWLClass(X_CHAPTER);
-		Set<OWLClass> allSubclses = getNamedSubclasses(chapterXTopClass, icdOnt, false);
+		Set<OWLClass> allSubclses = OWLAPIUtil.getNamedSubclasses(chapterXTopClass, icdOnt, reasoner, false);
 		for (OWLClass subcls : allSubclses) {
-			String label = OWLAPIUtil.getRDFSLabelValue(icdOnt, subcls);
-			Set<OWLClass> superClses = getNamedSuperclasses(subcls, icdOnt, true);
+			//String label = OWLAPIUtil.getRDFSLabelValue(icdOnt, subcls);
+			String label = getTitle(subcls);
+			
+			Set<OWLClass> superClses = OWLAPIUtil.getNamedSuperclasses(subcls, icdOnt, reasoner, true);
 			List<String> syns = OWLAPIUtil.getStringAnnotationValues(icdOnt, subcls, synProp);
 			chapterXClses.put(subcls,new OWLClsWithSyns(subcls, label, syns, superClses));
 		}
@@ -241,26 +249,9 @@ public class ICDXChapterMatcher {
 		log.info("Ended caching X Chapter");
 	}
 	
-	private Set<OWLClass> getNamedSubclasses(OWLClass owlClass, OWLOntology ontology, boolean direct) {
-		Set<OWLClass> subclses = new HashSet<OWLClass>();
-		Stream<OWLClass> subclsesStream = reasoner.getSubClasses(owlClass, direct).entities();
-		
-		subclsesStream.
-			filter(c -> c.isBottomEntity() == false).
-			forEach(subclses::add);
-
-		return subclses;
-	}
-	
-	private Set<OWLClass> getNamedSuperclasses(OWLClass owlClass, OWLOntology ontology, boolean direct) {
-		Set<OWLClass> superClses = new HashSet<OWLClass>();
-		Stream<OWLClass> superClsesStream = reasoner.getSuperClasses(owlClass, direct).entities();
-		
-		superClsesStream.
-			filter(c -> c.isBottomEntity() == false).
-			forEach(superClses::add);
-
-		return superClses;
+	private String getTitle(OWLClass cls) {
+		return OWLAPIUtil.getSKOSPrefLabelValue(icdOnt, cls);
+		//return OWLAPIUtil.getRDFSLabelValue(icdOnt, cls);
 	}
 	
 	
