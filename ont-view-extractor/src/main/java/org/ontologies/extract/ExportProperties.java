@@ -20,6 +20,7 @@ public class ExportProperties {
 	public static final String TARGET_ONTOLOGY_FILE = "target.ontology.file";
 	public static final String TARGET_ONTOLOGY_NAME = "target.ontology.name";
 	public static final String TOP_CLASSES ="export.top.classes";
+	public static final String EXPORT_CSV_FILE = "export.csv.file";
 	
 	public static final String APPEND_PROPERTY = "append.existing.ontology";
 	public static final String EXPORT_ANNOTATIONS_ON_ANNOTATIONS = "export.annotations.on.annotations";
@@ -54,6 +55,10 @@ public class ExportProperties {
 
 	public static String getTargetOntologyName() {
 		return p.getProperty(TARGET_ONTOLOGY_NAME);
+	}
+	
+	public static String getExportCSVFileLocation() {
+		return p.getProperty(EXPORT_CSV_FILE);
 	}
 
 	public static boolean getAppendOntologyFile() {
