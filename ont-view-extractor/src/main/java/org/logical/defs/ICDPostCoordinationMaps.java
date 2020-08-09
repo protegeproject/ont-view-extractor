@@ -1,7 +1,6 @@
 package org.logical.defs;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,9 +73,33 @@ public class ICDPostCoordinationMaps {
 		
 		// Ignoring Diagnosis confirmed by, because no value set
 		
-		/***** External causes axes - ignored for now *****/
+		/***** External causes axes ***********/
 		
+		put("http://who.int/icd#ICECI_C.2", ICDContentModelConstants.PC_AXIS_EC_MECHANISM_OF_INJURY);
+		
+		//object or living things causing injury
+		put("http://who.int/icd#ICECI_C.3", ICDContentModelConstants.PC_AXIS_EC_OBJECT_OR_SUBSTANCE_PRODUCING_INJURY);
+		put("http://who.int/icd#Substances", ICDContentModelConstants.PC_AXIS_EC_OBJECT_OR_SUBSTANCE_PRODUCING_INJURY);
+		
+		
+		put("http://who.int/icd#ICECI_T.1", ICDContentModelConstants.PC_AXIS_EC_TRANSPORT_EVENT_DESCRIPTOR_MODE_OF_TRANSPORT_OF_THE_INJURED_PERSON);
+		put("http://who.int/icd#ICECI_T.2", ICDContentModelConstants.PC_AXIS_EC_TRANSPORT_EVENT_DESCRIPTOR_COUNTERPART);
+		put("http://who.int/icd#2360_16e67c35_8b57_40bb_9220_818553425a8c", ICDContentModelConstants.PC_AXIS_EC_TRANSPORT_EVENT_DESCRIPTOR_MECHANISM_OF_TRANSPORT_INJURY_WITHOUT_COUNTERPART);
+		put("http://who.int/icd#ICECI_T.2", ICDContentModelConstants.PC_AXIS_EC_TRANSPORT_EVENT_DESCRIPTOR_ROLE_OF_THE_INJURED_PERSON);
+		
+		
+		put("http://who.int/icd#ICECI_C.5", ICDContentModelConstants.PC_AXIS_EC_ACTIVITY_WHEN_INJURED);
+		put("http://who.int/icd#ICECI_C.6", ICDContentModelConstants.PC_AXIS_EC_ALCOHOL_USE);
+		
+		put("http://who.int/icd#2129_16e67c35_8b57_40bb_9220_818553425a8c", ICDContentModelConstants.PC_AXIS_EC_ARMED_CONFLICT_ROLE_OF_INJURED_PERSON_IN_ARMED_CONFLICT);
+		put("http://who.int/icd#ICECI_V.7", ICDContentModelConstants.PC_AXIS_EC_ARMED_CONFLICT_TYPE_OF_ARMED_CONFLICT);
+		
+		put("http://who.int/icd#ICECI_V.5", ICDContentModelConstants.PC_AXIS_EC_ASSAULT_AND_MALTREATMENT_CONTEXT_OF_ASSAULT_AND_MALTREATMENT);
+		put("http://who.int/icd#ICECI_V.3", ICDContentModelConstants.PC_AXIS_EC_ASSAULT_AND_MALTREATMENT_PERPETRATOR_VICTIM_RELATIONSHIP);
+		
+		//TODO: continue EC list
 	}};
+
 
 	
 	private OWLModel owlModel;
