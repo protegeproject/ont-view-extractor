@@ -5,6 +5,7 @@
    <property name = "owl.plugin.path"  value = "${protege.home}/plugins/${owl.path}"/>
    <property name = "icd.path"         value = "${protege.home}/plugins/edu.stanford.bmir.icd.misc"/>
    <property name = "lib"             location = "./lib"/>
+   <property name = "log4j.config.file" value = "log4j.properties" />
 
    <!-- 
      #  ********** Finding Protege Libraries. *************
@@ -32,7 +33,8 @@
       </condition>
       <path id = "project.classpath">    
         <pathelement location = "${protege.lib}"/>
-        <pathelement location = "${protege.home}/driver.jar"/>        
+        <pathelement location = "${protege.home}/driver.jar"/> 
+      	<pathelement location = "${log4j.config.file}"/>
         <fileset dir="${owl.plugin.path}"/>
       	<fileset dir="${icd.path}"/>      	
       	<fileset dir="./lib" />
@@ -58,11 +60,11 @@
 	        	dir="." 
 	            	classname="org.logical.defs.extcauses.importLogDefs.ImportLogicalDefs"
                         maxmemory="${heap.size.max}">
+	        	<jvmarg value="-Dlog4j.configurationFile=${log4j.config.file}" />
 		      	<classpath refid = "project.classpath"/>
 	        	<arg value="${pprj.file}"/>
 	        	<arg value="${publicid.file}"/>
 	 			<arg value="${logdefs.file}"/>
 	        </java>
 	 </target>
-	
 </project>
