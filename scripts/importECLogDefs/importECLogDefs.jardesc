@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="ont-view-extractor/scripts/importECLogDefs/lib/importECLogDefs.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/ont-view-extractor/scripts/importECLogDefs/importECLogDefs.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.logical.defs.extcauses.importLogDefs"/>
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.icd.retired"/>
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.ontologies.extract"/>
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.logical.defs.extcauses"/>
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.fma.icd.map"/>
+        <javaElement handleIdentifier="=ont-view-extractor/src\/main\/java&lt;org.logical.defs"/>
+    </selectedElements>
+</jardesc>

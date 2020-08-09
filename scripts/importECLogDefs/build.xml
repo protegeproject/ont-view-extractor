@@ -1,0 +1,70 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<project name = "Import External Causes Logical Definitions" default = "run">    
+   <property file="local.properties"/>  
+   <property name = "owl.path"         value = "edu.stanford.smi.protegex.owl"/>   
+   <property name = "owl.plugin.path"  value = "${protege.home}/plugins/${owl.path}"/>
+   <property name = "icd.path"         value = "${protege.home}/plugins/edu.stanford.bmir.icd.misc"/>
+   <property name = "lib"             location = "./lib"/>
+
+   <!-- 
+     #  ********** Finding Protege Libraries. *************
+   -->
+
+   <target name="checkProtegeHome">
+       <condition property="protege.home.set">
+           <available file="${protege.home}/protege.jar" type="file"/>
+       </condition>
+   </target>
+
+   <target name="useProtegeHome" depends="checkProtegeHome" if="protege.home.set">
+       <echo message="Using Protege Home = ${protege.home} to find protege jars"/>
+       <property name="protege.lib" value="${protege.home}/protege.jar"/>
+       <property name="protege.owl.lib" value="${protege.home}/plugins/${owl.path}/protege-owl.jar"/>   	   
+   </target>
+    
+
+    <target name = "checkProtegeLibs" depends="useProtegeHome">
+      <condition property="libs.found">
+        <and>
+          <available file="${protege.lib}" type = "file"/>
+          <available file="${protege.owl.lib}" type = "file"/>
+        </and>
+      </condition>
+      <path id = "project.classpath">    
+        <pathelement location = "${protege.lib}"/>
+        <pathelement location = "${protege.home}/driver.jar"/>        
+        <fileset dir="${owl.plugin.path}"/>
+      	<fileset dir="${icd.path}"/>      	
+      	<fileset dir="./lib" />
+      </path>
+
+    </target>
+
+    <target name="checkProtegeLibsAndReport" depends="checkProtegeLibs"
+            unless="libs.found">
+      <echo message="Missing protege libraries.  You need to set "/>
+      <echo message="the PROTEGE_HOME environment variable to a"/>
+      <echo message="protege installation directory where the"/>
+      <echo message="appropriate plugins have been installed."/>
+      <echo message="Alternatively set the jar libs in local.properties (protege.lib=...)"/>
+      <echo message="Use the -v option to ant to see what jars are missing."/>
+      <fail message = "missing protege libraries"/>
+    </target>
+      
+	
+	 <target name="run" depends="checkProtegeLibsAndReport">
+	        <java 
+			fork="true" 
+	        	dir="." 
+	            	classname="org.logical.defs.extcauses.importLogDefs.ImportLogicalDefs"
+                        maxmemory="${heap.size.max}">
+		      	<classpath refid = "project.classpath"/>
+	        	<arg value="${pprj.file}"/>
+	        	<arg value="${server}"/>
+	 			<arg value="${user}"/>
+	        	<arg value="${pass}"/>
+	        	<arg value="${prj}"/>
+	        </java>
+	 </target>
+	
+</project>
