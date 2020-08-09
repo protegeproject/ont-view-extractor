@@ -20,7 +20,7 @@ public class ExtCausesStringMatcher {
 	
 	public static final String ASPECT_OF="Aspect of";
 	
-	public final static List<String> EXCLUDED_SHORT_LABELS = List.of(
+	public final static List<String> EXCLUDED_SHORT_LABELS = Arrays.asList(
 			"unknown", "human", "natural", "other specify", "other specified",
 			"collision", "specify", "body", "animal", "drug", "mixed", "substance",
 			"assault", "part", "self", "self-harm","compound", "water"
