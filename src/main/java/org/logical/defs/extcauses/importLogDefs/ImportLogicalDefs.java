@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import edu.stanford.bmir.whofic.icd.ICDContentModel;
 import edu.stanford.smi.protege.model.Project;
@@ -57,6 +58,10 @@ public class ImportLogicalDefs {
 					+ "(3) CSV file with logical definitions to import;");
 			System.exit(1);
 		}
+		
+		//just desperate attempts to make it write the log
+		String log4jConfPath="log4j.properties";
+	    PropertyConfigurator.configure(log4jConfPath);
 		
 		Project prj = Project.loadProjectFromFile(args[0], new ArrayList());
 		OWLModel owlModel = (OWLModel) prj.getKnowledgeBase();
