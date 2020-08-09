@@ -96,7 +96,8 @@ public class LogicalDefinitionCreator {
 		
 		Collection<RDFSClass> operands = new ArrayList<RDFSClass>();
 		
-		operands.add(clsLogDef.getPrecoordParent());
+		RDFSNamedClass precoordParent = clsLogDef.getPrecoordParent();
+		operands.add(precoordParent);
 		
 		for (RDFProperty pcProp : pcAxesCache.getPCProps()) {
 			RDFSNamedClass filler = clsLogDef.getFiller(pcProp);
@@ -113,6 +114,9 @@ public class LogicalDefinitionCreator {
 		
 		OWLIntersectionClass intCls = owlModel.createOWLIntersectionClass(operands);
 		cls.addEquivalentClass(intCls);
+		
+		//setting also the precoordination parent
+		cm.setPrecoordinationSuperclass(cls, precoordParent);
 		
 		logDefCount ++;
 	}
