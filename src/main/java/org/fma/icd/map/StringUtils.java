@@ -592,7 +592,7 @@ public class StringUtils {
 		
 		System.out.println("\n************\n");
 
-		
+		System.out.println(longestCommonToken("Biopsy of skin and subcutaneous cell tissue of head or neck", "needle biopsy"));
 	}
 
 	
