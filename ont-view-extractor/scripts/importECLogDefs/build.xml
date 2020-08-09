@@ -60,10 +60,8 @@
                         maxmemory="${heap.size.max}">
 		      	<classpath refid = "project.classpath"/>
 	        	<arg value="${pprj.file}"/>
-	        	<arg value="${server}"/>
-	 			<arg value="${user}"/>
-	        	<arg value="${pass}"/>
-	        	<arg value="${prj}"/>
+	        	<arg value="${publicid.file}"/>
+	 			<arg value="${logdefs.file}"/>
 	        </java>
 	 </target>
 	
