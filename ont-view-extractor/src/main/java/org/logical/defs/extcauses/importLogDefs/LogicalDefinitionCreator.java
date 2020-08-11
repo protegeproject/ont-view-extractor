@@ -93,10 +93,12 @@ public class LogicalDefinitionCreator {
 	
 	private void createLogicalDefinition(ClsLogicalDefinition clsLogDef) {
 		OWLNamedClass cls = (OWLNamedClass) clsLogDef.getCls();
+		RDFSNamedClass precoordParent = clsLogDef.getPrecoordParent();
+		
+		//check if cls already has the precoord parent as a direct superclass
+		boolean hasPrecoordParentAsDirSupercls = checkIfDirectParent(cls, precoordParent);
 		
 		Collection<RDFSClass> operands = new ArrayList<RDFSClass>();
-		
-		RDFSNamedClass precoordParent = clsLogDef.getPrecoordParent();
 		operands.add(precoordParent);
 		
 		for (RDFProperty pcProp : pcAxesCache.getPCProps()) {
@@ -118,9 +120,21 @@ public class LogicalDefinitionCreator {
 		//setting also the precoordination parent
 		cm.setPrecoordinationSuperclass(cls, precoordParent);
 		
+		//if the cls did not have the precoord parent as dir superclass,
+		//then, remove it now. (Protege has add it because it is an operand
+		//in the logical definition.
+		if (hasPrecoordParentAsDirSupercls == false) {
+			cls.removeSuperclass(precoordParent);
+		}
+		
 		logDefCount ++;
 	}
 	
+
+	private boolean checkIfDirectParent(OWLNamedClass cls, RDFSNamedClass parent) {
+		Collection<RDFSClass> dirParents = cls.getSuperclasses(false);
+		return dirParents.contains(parent);
+	}
 
 	private void enablePostCoordinationAxesForParent(ClsLogicalDefinition clsLogDef) {
 		RDFSNamedClass parent = clsLogDef.getPrecoordParent();
