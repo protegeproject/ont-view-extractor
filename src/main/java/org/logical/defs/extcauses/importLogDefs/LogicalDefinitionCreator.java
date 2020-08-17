@@ -63,7 +63,7 @@ public class LogicalDefinitionCreator {
 		//remove one of the "object or substance" axes, as there are two; 
 		//the values of the two same axes are mutually exclusive
 		//so removing one should be safe
-		pcAxesCache.getPCProps().remove(1);
+		//pcAxesCache.getPCProps().remove(1);
 		
 		for (RDFSNamedClass cls : cls2logDefDesc.keySet()) {
 			createLogicalDefinitions(cls);
