@@ -174,7 +174,7 @@ public class PrePostCoordinationUtils {
 
 	public String checkLogicalDefinition(RDFSNamedClass childCls, RDFSNamedClass chapterXCls, RDFSNamedClass parentCls) {
 		//check parent
-		RDFSNamedClass preCoordSupercls = cm.getPreecoordinationSuperclass(childCls);
+		RDFSNamedClass preCoordSupercls = cm.getPrecoordinationSuperclass(childCls);
 		if (preCoordSupercls == null) {
 			return LOG_DEF_MISSING;
 		}
